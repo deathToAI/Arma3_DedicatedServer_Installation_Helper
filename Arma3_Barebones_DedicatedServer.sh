@@ -3,13 +3,19 @@
 #Script for arma 3 server installation on barebones linux(Ubuntu)
 #Mods downloading
 
+#Setting of variables
+install_dir="/home/arma3server/arma3"
+mods_dir="/home/arma3server/mods/steamapps/workshop/content/107410/"
+username=""
+modlist="/home/arma3server/mods/modlist.txt"
+
+#COLORS
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[0;33m'
 BLUE='\033[0;34m'
 BOLD='\033[1m'
-NC='\033[0m' # No Color
-
+NC='\033[0m'
 
 main(){
   #Check if root
@@ -23,9 +29,9 @@ main(){
     0-Exit
     1-Create 'arma3server' user
     2-Download steamcmd
-    3-Insert Steam Account for mod Downloading (For mods downloading you need a steam account with Arma 3 in library)
+    3-Insert Steam Account for mod Downloading (For mods to download you need a steam account with Arma 3 in library)
     4-Download Arma3 server
-    5-Select directory for mods to download
+    5-Select directory for mods to download (Default: /home/arma3server/mods/steamapps/workshop/content/107410/)
     6-Download Mods
     "
     read -p "Option: " option
@@ -51,8 +57,9 @@ main(){
         ;;
       ##Insert Steam Account for mod Downloading
       "3")
-        echo -e "Option $option selected:  ${BOLD}${BLUE}Insert Steam Account for mod Downloading${NC}\n"
+        echo -e "Option $option selected:  ${BOLD}${BLUE}Insert Steam Account for mod Downloading${NC}(For mods to download you need a steam account with Arma 3 in library)\n"
         read -rp "Enter Steam username: " username
+        steamcmd +login $username +quit
         ;;
       ##Download Arma3 server
       "4")
@@ -62,9 +69,8 @@ main(){
       #Select directory for mods to download
       "5")
         echo -e "Option $option selected:  ${BOLD}${BLUE}Select directory for mods to download${NC}\n"
-        read -rp "Enter mods directory path: " mods_dir
-        
-        
+        read -rp "Enter mods directory path:(current $mods_dir) " mods_dir
+     
         ;;
       ##Download Mods
       "6")
@@ -82,23 +88,17 @@ main(){
     sleep 0.5
   done
 }
-mkdir -p /home/arma3server/mods
-install_dir="/home/arma3server/arma3"
-mods_dir="/home/arma3server/mods/steamapps/workshop/content/107410/"
-username=""
-modlist="/home/arma3server/mods/modlist.txt"
-ln -s "$mods_dir;"* $install_dir
 
-
-# 1. Create dedicated user for arma3server
+#Create dedicated user for arma3server
 create_arma3user(){
   echo ">> Creating 'arma3server'"
   echo "Do not forget to set arma3server a password with 'passwd arma3server' command"
   sudo adduser --disabled-password --gecos "" arma3server
   su arma3user -c "mkdir -p ~/arma3"
+  mkdir -p /home/arma3server/mods
 }
 
-# 2. Install 
+#Install steamcmd
 download_steamcmd(){
   echo ">> Installing dependencies"
   sudo add-apt-repository multiverse
@@ -109,7 +109,7 @@ download_steamcmd(){
   echo ">> Installing SteamCMD"
   sudo apt install -y steamcmd
 }
-
+#Download Arma 3 Server
 download_arma_server(){
   echo ">> Downloading Arma 3 server"
   if [[ -z "$username" ]]; then
@@ -117,12 +117,11 @@ download_arma_server(){
     return 1
   fi
   sudo -u arma3server bash -c "steamcmd.sh +force_install_dir $install_dir +login $username +app_update 233780 validate +quit"
+  echo "Default install dir: $install_dir"
 }
-
+##Due to linux behaviour when running arma 3 server the mods files must be converted to lower case(i don´t know, ask the arma3 devs)
 tolowercase(){
-  # 5. Convert filename inside mod_dir to lowercase 
-  ##Due to linux behaviour when running arma 3 server the mods files must be converted to lower case(i don´t know, ask the arma3 devs)
-  echo ">> Criando script de renomeação para lowercase"
+  echo ">> Converting files inside $mods_dir to ${YELLOW}lower case${NC}"
   sudo -u arma3server bash -c "cd $mods_dir;
   depth=0
   for x in $(find . -type d | sed "s/[^/]//g"); do
@@ -140,8 +139,6 @@ tolowercase(){
 }
 
 add_mods(){
-  local mod_id="$2"
-
   # Ensure modlist.txt exists
   if [[ ! -f $modlist ]]; then
     echo 'Mod - Number' > "$modlist"
@@ -203,13 +200,7 @@ add_mods(){
   else
     echo "Invalid mod ID or file."
   fi
+ln -s "$mods_dir/*" $install_dir
+echo ">> Creating mods symlinks from $mods_dir to $install_dir "
 }
-
-
-# 6. Criar links simbólicos dos mods do Steam Workshop para a pasta do servidor
-echo ">> Criando links simbólicos dos mods"
-# Exemplo de onde estariam os mods:
-STEAMMODS="/home/arma3server/mods/steamapps/workshop/content/107410"
-TARGETDIR="/home/arma3server/arma3"
-
 
