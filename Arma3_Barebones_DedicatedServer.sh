@@ -17,73 +17,70 @@ main(){
     echo "This script must be run as root. Please run with sudo or as root user."
     exit 1
   fi
-show_options(){
-  echo -e "Press the option number you want:\n
-  0-Exit
-  1-Create 'arma3server' user
-  2-Download steamcmd
-  3-Insert Steam Account for mod Downloading
-  4-Select directory for mods to download
-  5-Download Mods
-  "
-  read -p "Option: " option
-}
+  #Options Menu
+  show_options(){
+    echo -e "Press the option number you want:\n
+    0-Exit
+    1-Create 'arma3server' user
+    2-Download steamcmd
+    3-Insert Steam Account for mod Downloading (For mods downloading you need a steam account with Arma 3 in library)
+    4-Download Arma3 server
+    5-Select directory for mods to download
+    6-Download Mods
+    "
+    read -p "Option: " option
+  }
 
-while true; do
-  show_options
-  case "$option" in
-    "0")
-      echo "Exiting..."
-      sleep 1
-      break
-      ;;
-    "1")
-      echo -e "Option $option selected: ${BOLD}${BLUE}Create 'arma3server' user${NC}\n"
-      create_arma3user
-      ;;
-    "2")
-      echo -e "Option $option selected:  ${BOLD}${BLUE}Download steamcmd${NC}\n"
-      download_steamcmd
-      ;;
-    "3")
-      echo -e "Option $option selected:  ${BOLD}${BLUE}Insert Steam Account for mod Downloading${NC}\n"
-      read -rp "Enter Steam username: " username
-      ;;
-    "4")
-      echo -e "Option $option selected:  ${BOLD}${BLUE}Select directory for mods to download${NC}\n"
-      read -rp "Enter mods directory path: " mods_dir
-      ;;
-    "5")
-      echo -e "Option $option selected:  ${BOLD}${BLUE}Download Mods${NC}\n"
-      read -rp "Enter mod ID or path to file with mod IDs: " mod_input
-      add_mods "$mod_input"
-      ;;
-    *)
-      echo "Invalid option, try again"
-      sleep 0.5
-      ;;
-  esac
-done
-	echo "Invalid option try againg"
-	sleep 0.5
- esac
-done
-
-#Options Menu
-
-  ##Create user arma3server if non existing
-
-  ##Download steamcmd if not downloaded
-
-  ##Download Arma3 server
-
-  ##Insert Steam Account for mod Downloading
-
-  #Select directory for mods to download
-
-  ##Download Mods
-  add_mods();
-
+  while true; do
+    show_options
+    case "$option" in
+      "0")
+        echo "Exiting..."
+        sleep 1
+        break
+        ;;
+      ##Create user arma3server if non existing  
+      "1")   
+        echo -e "Option $option selected: ${BOLD}${BLUE}Create 'arma3server' user${NC}\n"
+        create_arma3user
+        ;;
+      ##Download steamcmd if not downloaded
+      "2")
+        echo -e "Option $option selected:  ${BOLD}${BLUE}Download steamcmd${NC}\n"
+        download_steamcmd
+        ;;
+      ##Insert Steam Account for mod Downloading
+      "3")
+        echo -e "Option $option selected:  ${BOLD}${BLUE}Insert Steam Account for mod Downloading${NC}\n"
+        read -rp "Enter Steam username: " username
+        ;;
+      ##Download Arma3 server
+      "4")
+        echo -e "Option $option selected:  ${BOLD}${BLUE}Download Arma3 server${NC}\n"
+        download_arma_server
+        ;;
+      #Select directory for mods to download
+      "5")
+        echo -e "Option $option selected:  ${BOLD}${BLUE}Select directory for mods to download${NC}\n"
+        read -rp "Enter mods directory path: " mods_dir
+        
+        
+        ;;
+      ##Download Mods
+      "6")
+        echo -e "Option $option selected:  ${BOLD}${BLUE}Download Mods${NC}\n"
+        read -rp "Enter mod ID or path to file with mod IDs: " mod_input
+        add_mods "$mod_input"
+        ;;
+      *)
+        echo -e "Invalid option, try again\n"
+        sleep 0.5
+        ;;
+    esac
+  done
+    echo "Invalid option try againg"
+    sleep 0.5
+  done
 }
 mkdir -p /home/arma3server/mods
 install_dir="/home/arma3server/arma3"
@@ -98,6 +95,7 @@ create_arma3user(){
   echo ">> Creating 'arma3server'"
   echo "Do not forget to set arma3server a password with 'passwd arma3server' command"
   sudo adduser --disabled-password --gecos "" arma3server
+  su arma3user -c "mkdir -p ~/arma3"
 }
 
 # 2. Install 
@@ -113,7 +111,11 @@ download_steamcmd(){
 }
 
 download_arma_server(){
-  echo ">> Downloading arma 3 server"
+  echo ">> Downloading Arma 3 server"
+  if [[ -z "$username" ]]; then
+    echo -e "${RED}Error: Steam username not set. Please run option 3 first.${NC}"
+    return 1
+  fi
   sudo -u arma3server bash -c "steamcmd.sh +force_install_dir $install_dir +login $username +app_update 233780 validate +quit"
 }
 
