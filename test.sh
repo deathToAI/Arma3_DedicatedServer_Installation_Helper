@@ -1,3 +1,16 @@
+#COLORS
+RED='\033[0;31m'
+ORANGE='\033[0;35m'
+YELLOW='\033[0;33m'
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+CYAN='\033[0;36m'
+VIOLET='\033[1;35m'
+BOLD='\033[1m'
+NC='\033[0m'
+
+mods_base="/home/arma3server/mods"
+
 #set -x
 show_options(){
   read -p "Press the option number you want:
@@ -9,6 +22,8 @@ show_options(){
   5-Download Mods
   " option
 }
+
+echo -e "Existing mods in ${VIOLET}${mods_base} \n"
 
 while true; do
 	show_options
