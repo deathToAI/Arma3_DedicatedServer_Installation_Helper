@@ -203,4 +203,117 @@ echo ">> Creating mods symlinks from $mods_dir to $install_dir "
 ln -s $mods_dir/* $install_dir
 }
 
+create_service(){
+if [[ -z "$username" ]]; then
+    echo -e "${RED}Error: Steam username not set. Please run option 3 first.${NC}"
+    return 1
+  fi
+echo ">> Creating start_server.sh script at /home/arma3server/"
+cat <<EOF | sudo tee /home/arma3server/start_server.sh
+#!/bin/bash
+
+set -x
+steamcmd +login $username +quit
+
+cd /home/arma3server/arma3
+
+lista=$(cat /home/arma3server/mods/modlist.txt)
+echo -e "Initializing Arma 3 server with mods:\n\$lista"
+mods=$(ls /home/arma3server/mods/steamapps/workshop/content/107410/ | tr '\n' ';' | sed 's/;$//')
+
+/home/arma3server/arma3/arma3server_x64 -name=profile1 -config=server.cfg -cfg=performance.cfg -limitFPS=700 -enableHT -loadMissionToMemory -autoInit -hugepages -noLogs -mod="$mods"
+
+EOF
+  echo ">> Setting execute permissions for start_server.sh"
+  sudo chmod +x /home/arma3server/start_server.sh
+
+#Creating profile1 directory
+  echo ">> Creating profile1 directory"
+  sudo -u arma3server mkdir -p '/home/arma3server/.local/share/Arma 3 - Other Profiles/profile1'
+cat <<EOF | sudo tee '/home/arma3server/.local/share/Arma 3 - Other Profiles/profile1/profile1.Arma3Profile'
+version=1;
+blood=1;
+singleVoice=0;
+gamma=1;
+brightness=1;
+soundEnableEAX=1;
+soundEnableHW=0;
+difficulty="Custom";
+class DifficultyPresets
+{
+  class CustomDifficulty
+  {
+    class Options
+    {
+      reducedDamage=0;
+      groupIndicators=2;
+      friendlyTags=2;
+      enemyTags=0;
+      detectedMines=1;
+      commands=1;
+      waypoints=1;
+      weaponInfo=2;
+      stanceIndicator=1;
+      staminaBar=0;
+      weaponCrosshair=1;
+      visionAid=0;
+      thirdPersonView=1;
+      cameraShake=0;
+      scoreTable=1;
+      deathMessages=1;
+      vonID=1;
+      mapContent=1;
+      autoReport=0;
+      multipleSaves=1;
+      tacticalPing=2;
+    };
+    aiLevelPreset=3;
+  };
+  class CustomAILevel
+  {
+    skillAI=0.60000002;
+    precisionAI=0.15000001;
+  };
+};
+activeKeys[]=
+{
+  "BIS_Evac.chernarus_done"
+};
+volumeCD=5;
+volumeFX=5;
+volumeSpeech=5;
+volumeVoN=5;
+volumeMapDucking=1;
+volumeUI=1;
+EOF
+
+#Create systemd service
+echo ">> Creating systemd service for Arma 3 server"
+cat <<EOF | sudo tee /etc/systemd/system/arma3server.service
+[Unit]
+Description=Arma 3 Dedicated Server
+After=network.target
+
+[Service]
+User=arma3server
+Group=arma3server
+Type=simple
+ExecStart=/home/arma3server/start_server.sh
+Restart=always
+RestartSec=10
+StartLimitInterval=300
+StartLimitBurst=5
+
+[Install]
+WantedBy=multi-user.target
+
+EOF
+  echo ">> Reloading systemd daemon"
+  sudo systemctl daemon-reload
+  echo ">> Enabling arma3server service"
+  sudo systemctl enable arma3server
+  echo ">> Starting arma3server service"
+  sudo systemctl start arma3server
+}
+#Main function call
 main
