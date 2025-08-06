@@ -17,9 +17,12 @@ The step by step i followed was in this three part tutorial:
 
 You just need to download the shellscript and run it as root(sus i know)
 
-`wget https://raw.githubusercontent.com/deathToAI/Arma3_Barebones_DedicatedServer/refs/heads/main/Arma3_Barebones_DedicatedServer.sh` 
+`wget https://raw.githubusercontent.com/deathToAI/Arma3_Barebones_DedicatedS
+erver/refs/heads/main/Arma3_Barebones_DedicatedServer.sh` 
 
-It will present you with options (see placeholder image below), and you can select one.
+It will present you with options (see image below), and you can select one.
+
+<img width="1673" height="554" alt="Options Screenshot" src="https://github.com/user-attachments/assets/89e816c6-b547-47c8-8427-87066dee38ac" />
 
 # Improvements
 
