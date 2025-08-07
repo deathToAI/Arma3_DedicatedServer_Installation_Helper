@@ -62,6 +62,7 @@ main(){
       "3")
         echo -e "Option $option selected:  ${BOLD}${BLUE}Insert Steam Account for mod Downloading${NC}(For mods to download you need a steam account with Arma 3 in library)\n"
         read -rp "Enter Steam username: " username
+        echo "username=\"$username\"" > /home/arma3server/.steamuser
         steamcmd +login $username +quit
         ;;
       ##Download Arma3 server
@@ -80,6 +81,12 @@ main(){
         echo -e "Option $option selected:  ${BOLD}${BLUE}Download Mods${NC}\n"
         add_mods 
         ;;
+      ##Create systemd service and startup script
+      "7")
+        echo -e "Option $option selected:  ${BOLD}${BLUE}Create systemd service and startup script${NC}\n"
+        create_service
+        ;;
+      #Invalid option handling  
       *)
         echo -e "Invalid option, try again\n"
         sleep 0.5
@@ -112,8 +119,8 @@ download_steamcmd(){
 download_arma_server(){
   echo ">> Downloading Arma 3 server"
   if [[ -z "$username" ]]; then
-    echo -e "${RED}Error: Steam username not set. Please run option 3 first.${NC}"
-    return 1
+      echo -e "${RED}Error: Steam username not set. Please run option 3 first.${NC}"
+      return 1
   fi
   sudo -u arma3server bash -c "steamcmd.sh +force_install_dir $install_dir +login $username +app_update 233780 validate +quit"
   echo "Default install dir: $install_dir"
@@ -142,7 +149,7 @@ add_mods(){
   # Ensure modlist passed exists
   if [[ ! -f $modlist ]]; then
     echo 'Mod - Number' > "$modlist"
-    echo -e "${GREEN}Updated mod list at ${modlist}"
+    echo -e "${GREEN}Updated mod list at ${modlist}${NC}\n"
   fi
 
   #Show installed mods
@@ -203,23 +210,30 @@ echo ">> Creating mods symlinks from $mods_dir to $install_dir "
 ln -s $mods_dir/* $install_dir
 }
 
+# Creates a systemd service and startup script for the Arma 3 dedicated server, including profile setup.
 create_service(){
 if [[ -z "$username" ]]; then
     echo -e "${RED}Error: Steam username not set. Please run option 3 first.${NC}"
     return 1
   fi
 echo ">> Creating start_server.sh script at /home/arma3server/"
-cat <<EOF | sudo tee /home/arma3server/start_server.sh
+cat <<'EOF' | sudo tee /home/arma3server/start_server.sh
 #!/bin/bash
 
 set -x
+if [ -f /home/arma3server/.steamuser ]; then
+  source /home/arma3server/.steamuser
+else
+  echo "Steam username file not found. Please run the setup script and set the Steam username."
+  exit 1
+fi
 steamcmd +login $username +quit
 
 cd /home/arma3server/arma3
 
 lista=$(cat /home/arma3server/mods/modlist.txt)
 echo -e "Initializing Arma 3 server with mods:\n\$lista"
-mods=$(ls /home/arma3server/mods/steamapps/workshop/content/107410/ | tr '\n' ';' | sed 's/;$//')
+mods=$(find /home/arma3server/mods/steamapps/workshop/content/107410/ -mindepth 1 -maxdepth 1 -type d | tr '\n' ';' | sed 's/;$//')
 
 /home/arma3server/arma3/arma3server_x64 -name=profile1 -config=server.cfg -cfg=performance.cfg -limitFPS=700 -enableHT -loadMissionToMemory -autoInit -hugepages -noLogs -mod="$mods"
 
@@ -275,10 +289,7 @@ class DifficultyPresets
     precisionAI=0.15000001;
   };
 };
-activeKeys[]=
-{
-  "BIS_Evac.chernarus_done"
-};
+
 volumeCD=5;
 volumeFX=5;
 volumeSpeech=5;
