@@ -2,18 +2,6 @@
 # Script para configurar servidor dedicado do Arma 3 em Linux(Ubuntu) puro
 # Script for arma 3 server installation on barebones linux(Ubuntu)
 
-# Exit immediately if a command exits with a non-zero status.
-# Treat unset variables as an error when substituting.
-# Pipelines return the exit status of the last command to exit with a non-zero status.
-set -euo pipefail
-
-echo "Setting Variables"
-#Setting of variables
-install_dir="/home/arma3server/arma3"
-mods_base="/home/arma3server/mods"
-mods_dir="/home/arma3server/mods/steamapps/workshop/content/107410/"
-modlist="/home/arma3server/mods/modlist.txt"
-
 #COLORS
 RED='\033[0;31m'
 ORANGE='\033[0;35m'
@@ -25,10 +13,33 @@ VIOLET='\033[1;35m'
 BOLD='\033[1m'
 NC='\033[0m'
 
+
+#Setting of variables
+install_dir="/home/arma3server/arma3"
+mods_base="/home/arma3server/mods"
+mods_dir="/home/arma3server/mods/steamapps/workshop/content/107410/"
+modlist="/home/arma3server/mods/modlist.txt"
+
+echo "This is a Helper for Installing an Arma 3 server on a Linux(Ubuntu based) distro"
+echo "--------------------------------------------------------------------------------"
+echo -e "For more info i highly suggest the user to ${RED}READ THE DOCUMENTATION ${NC}"
+echo "--------------------------------------------------------------------------------"
+echo "Github repository: https://github.com/deathToAI/Arma3_DedicatedServer_Installation_Helper"
+echo -e "Also read the Arma 3 official docs at:\n
+https://community.bistudio.com/wiki/Arma_3:_Server_Config_File#Mission_rotation \n
+https://community.bistudio.com/wiki/server.armaprofile \n
+https://community.bistudio.com/wiki/Arma_3:_Difficulty_Settings \n
+"
+# Exit immediately if a command exits with a non-zero status.
+# Treat unset variables as an error when substituting.
+# Pipelines return the exit status of the last command to exit with a non-zero status.
+set -euo pipefail
+
+
 main(){
   #Check if root
   if [[ $EUID -ne 0 ]]; then
-    echo "This script must be run as root. Please run with sudo or as root user."
+    echo -e "This script must be run as root. ${BOLD}Please run with sudo or as root user. ${NC}"
     exit 1
   fi
   #Options Menu
@@ -159,15 +170,16 @@ add_mods(){
     echo 'Mod - Number' > "$modlist"
     echo -e "${GREEN}Updated mod list at ${modlist}${NC}\n"
   fi
+  name=$(grep $1 $modlist | cut -d '-' -f1)
 
   #Show installed mods
-  if [ -d "$mods_dir" ] && [ "$(ls -A $mods_dir)" ]; then
-    echo ">> Checking for existing mods..."
-    for id in $(ls -1 "$mods_dir"); do
-      name=$(curl -s "https://steamcommunity.com/sharedfiles/filedetails/?id=${id}"|grep -oP '<title>Steam Workshop::\K.*?(?=</title>)')
-      echo -e "   - ${name:-Unknown} ($id)"
-    done
-  fi
+    if [ -d "$mods_dir" ] && [ "$(ls -A $mods_dir)" ]; then
+      echo ">> Checking for existing mods..."
+      for id in $(ls -1 "$mods_dir"); do
+        name=$(curl -s "https://steamcommunity.com/sharedfiles/filedetails/?id=${id}"|grep -oP '<title>Steam Workshop::\K.*?(?=</title>)')
+        echo -e "   - ${name:-Unknown} ($id)"
+      done
+    fi
   #Prompt for mod ID or file with mod IDs
   echo -e "Enter mod ID or path to file with mod IDs(${BOLD}One id per line):\n Or press 0 to go back to options\n"
   read mod_input
