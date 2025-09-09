@@ -1,0 +1,17 @@
+[Unit]
+Description=Arma 3 Dedicated Server
+After=network.target
+Requires=arma3server.service
+
+[Service]
+User=arma3server
+Group=arma3server
+Type=simple
+ExecStart=/home/arma3server/start_headless.sh
+Restart=always
+RestartSec=10  
+StartLimitInterval=300
+StartLimitBurst=5
+
+[Install]
+WantedBy=multi-user.target
