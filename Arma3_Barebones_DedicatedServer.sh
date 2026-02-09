@@ -4,10 +4,58 @@
 # This script is a helper for Installing an Arma 3 server on a Linux(Ubuntu based) distro.
 # It provides a menu-driven interface to perform setup tasks.
 
+
+#Colors
+RED='\033[0;31m'
+ORANGE='\033[0;33m'
+YELLOW='\033[1;33m'
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+CYAN='\033[0;36m'
+VIOLET='\033[0;35m'
+BOLD='\033[1m'
+NC='\033[0m'
+
 # Source common variables and colors
-source "ExampleFiles/config.sh"
+source "$(pwd)/ExampleFiles/colors.sh"
+source "$(pwd)/ExampleFiles/.creds.sh"
+source "$(pwd)/ExampleFiles/functions.sh"
+
+
+#Checks if curl is installed
+if [ $(dpkg -l curl | grep -c "ok") -eq 0 ]; then
+echo "Installing curl"
+sudo apt install curl -y
+else
+echo "Curl is installed"
+fi
+#Check for net-tools(required for Arma)
+if [ $(dpkg -l net-tools | grep -c "ok") -eq 0 ]; then
+echo "Installing net-tools"
+sudo apt install net-tools -y
+else
+echo "net-tools(ifconfig) is installed"
+fi
+#Check for steamcmd
+if [ $(dpkg -l steamcmd | grep -c "ok") -eq 0 ]; then
+    if [ $(cat /etc/issue | grep -c "Ubuntu") -eq 1  ];then
+    sudo add-apt-repository multiverse; sudo dpkg --add-architecture i386; sudo apt update
+    sudo apt install steamcmd
+    
+    elif [ $(cat /etc/issue | grep -c "Debian") -eq 1 ];then
+    sudo apt update; sudo apt install software-properties-common; sudo apt-add-repository non-free; sudo dpkg --add-architecture i386; sudo apt update
+    sudo apt install steamcmd
+
+    else
+    echo "Check https://developer.valvesoftware.com/wiki/SteamCMD for your distro/OS"
+    fi
+
+else
+echo "Package steamcmd is installed"
+fi
 
 # Export variables to be available in sub-shells/scripts
+steamuser_file="$(pwd)/ExampleFiles/.creds.sh"
 export install_dir mods_base mods_dir modlist steamuser_file
 export RED ORANGE YELLOW GREEN BLUE CYAN VIOLET BOLD NC
 
@@ -25,7 +73,6 @@ https://community.bistudio.com/wiki/Arma_3:_Difficulty_Settings \n
 # Treat unset variables as an error when substituting.
 # Pipelines return the exit status of the last command to exit with a non-zero status.
 set -euo pipefail
-
 
 main(){
   # Check if running as root
@@ -53,6 +100,11 @@ main(){
     case "$option" in
       "0")
         echo "Exiting..."
+        echo "Remember to edit \n 
+        $(readlink -f ExampleFiles/arma3server.service),\n
+        $(readlink -f ExampleFiles/arma3headless.service) \n
+        $(readlink -f ExampleFiles/.creds.sh)
+        and $(readlink -f ExampleFiles/server.cfg) "
         sleep 1
         break
         ;;
@@ -64,7 +116,7 @@ main(){
       ## Download steamcmd if not already downloaded
       "2")
         echo -e "Option $option selected:  ${BOLD}${BLUE}Install steamcmd${NC}\n"
-        bash "ExampleFiles/install_steamcmd.sh"
+        sudo apt install steamcmd -y
         ;;
       ## Insert Steam Account for mod downloading
       "3")
@@ -73,7 +125,7 @@ main(){
         # Ensure arma3server home exists and set ownership
         mkdir -p /home/arma3server
         chown arma3server:arma3server /home/arma3server
-        echo "username=\"$username\"" > "$steamuser_file"
+        sed -i "s/^STEAM_USER=.*/STEAM_USER=\"$username\"/" "$steamuser_file"
         chown arma3server:arma3server "$steamuser_file"
         sudo -u arma3server steamcmd +login "$username" +quit
         ;;
@@ -85,22 +137,20 @@ main(){
       # Convert mod files to lowercase
       "5")
         echo -e "Option $option selected:  ${BOLD}${VIOLET}Convert mod files to lowercase${NC}\n"
-        bash "ExampleFiles/mods_to_lowercase.sh"
+        tolowercase /home/arma3server/mods/steamapps/workshop/content/107410
         ;;  
       ## Download Mods
       "6")
         echo -e "Option $option selected:  ${BOLD}${BLUE}Download Mods${NC}\n"
-        bash "ExampleFiles/add_mods.sh"
+        apply_mods
         # After adding mods, it's good practice to update the list and convert to lowercase
-        echo ">> Updating modlist.txt..."
-        bash "ExampleFiles/lister.sh"
         echo ">> Converting new mod files to lowercase..."
-        bash "ExampleFiles/mods_to_lowercase.sh"
+        tolowercase /home/arma3server/mods/steamapps/workshop/content/107410
         ;;
       ## Create systemd service and startup script
       "7")
         echo -e "Option $option selected:  ${BOLD}${BLUE}Create systemd service and startup script${NC}\n"
-        bash "ExampleFiles/create_service.sh"
+        create_service
         ;;
       # Invalid option handling
       *)
@@ -110,6 +160,36 @@ main(){
     esac
   done
 }
+
+tolowercase(){
+    DIR="${1:-.}"
+
+  find "$DIR" -depth | while read -r item; do
+      dir=$(dirname "$item")
+      base=$(basename "$item")
+      lower=$(echo "$base" | tr '[:upper:]' '[:lower:]')
+
+      if [ "$base" != "$lower" ]; then
+          if [ ! -e "$dir/$lower" ]; then
+              mv -v "$item" "$dir/$lower"
+          else
+              echo "SKIP (already exists): $dir/$lower"
+          fi
+      fi
+  done
+
+}
+
+create_service(){
+     sudo cp ExampleFiles/arma3server.service /etc/systemd/system/arma3server.service
+    sudo cp ExampleFiles/arma3headless.service /etc/systemd/system/arma3headless.service
+    sudo systemctl daemon-reload
+    sudo systemctl enable arma3server.service
+    sudo systemctl enable arma3headless.service
+    sudo systemctl start arma3server.service
+    sudo systemctl start arma3headless.service
+}
+
 
 # Main function call
 main

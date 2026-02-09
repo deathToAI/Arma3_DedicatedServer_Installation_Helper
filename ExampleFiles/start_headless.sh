@@ -1,16 +1,15 @@
 #!/bin/bash
 set -x
-steamcmd +login jogodetirinho +quit
+steamcmd +login $STEAM_USER +quit
 set +x
 MODS_DIR="/home/arma3server/mods/steamapps/workshop/content/107410"
 cd /home/arma3server/
-source ./mod_functions.sh
+source ./functions.sh
 declare_mods
 
 MODS_STRING=""
-for mod_id in "${!mods_by_name[@]}"; do
-    mod_folder=${mods_by_name[$mod_id]}
-    MODS_STRING+="$mod_folder;"
+for mod_name in "${!mods_by_name[@]}"; do
+    MODS_STRING+="@$mod_name;"
 done
 mods=$MODS_STRING
 mods=${MODS_STRING%;}
@@ -22,10 +21,10 @@ for i in "${!mods_by_name[@]}"; do
         MODS_NAMES+="$i\n"
 done
 
-echo -e "Iniciado headless de Arma 3 com os mods:\n $MOD_NAMES"
+echo -e "Arma 3 headless started with mods:\n $MOD_NAMES"
 #mods="\"$(ls /home/arma3server/mods/steamapps/workshop/content/107410/ | tr '\n' ';' | sed 's/;$//')\""
-echo "Lista numerica de mods: $mods"
+echo "Numeric mod list: $mods"
 cd /home/arma3server/arma3/
-echo "Iniciando o client headless"
+echo "Starting headless client"
 set -x
 /home/arma3server/arma3/arma3server_x64 -client -config=server.cfg -connect=127.0.0.1 -password=jogodep0wp0w -nosound -mod="$mods" 
