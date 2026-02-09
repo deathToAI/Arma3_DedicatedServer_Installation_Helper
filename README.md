@@ -17,8 +17,7 @@ The step by step i followed was in this three part tutorial:
 
 You just need to download the shellscript and run it, sudo or root permissions may be needed as it may need to install curl,steamcmd or edit services in systemd. 
 
-`wget https://raw.githubusercontent.com/deathToAI/Arma3_Barebones_DedicatedS
-erver/refs/heads/main/Arma3_Barebones_DedicatedServer.sh` 
+`git clone https://github.com/deathToAI/Arma3_DedicatedServer_Installation_Helper.git` 
 
 It will present you with options (see image below), and you can select one.
 
