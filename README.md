@@ -14,8 +14,13 @@ The step by step i followed was in this three part tutorial:
 **I'm, in no way, associated with the author of this video**, it just helped me a lot when i was hours into trying to configure the server with no success.
 
 # Install and use
+Before running:
+1. Edit `.creds.sh` to your steam account(Arma 3 needs a steam account as seen on https://developer.valvesoftware.com/wiki/Dedicated_Servers_List)
 
-You just need to download the shellscript and run it, sudo or root permissions may be needed as it may need to install curl,steamcmd or edit services in systemd. 
+2. Edit the mods you want to download at ./ExampleFiles/functions.sh `declare_mods` function. Comment those which you don´t want.
+
+3. Download the shellscript and run it, sudo or root permissions may be needed as it may need to install curl,steamcmd or edit services in systemd. 
+Obs: It will at first try to add steamcmd repositories, install curl and net-tools as they are needed for the script to run properly(ish).
 
 `git clone https://github.com/deathToAI/Arma3_DedicatedServer_Installation_Helper.git` 
 

@@ -135,10 +135,47 @@ check_symlinks() {
     done
 }
 
+
+tolowercase(){
+
+# Base directory (current directory)
+BASE="/home/arma3server/mods"
+echo "Lowering case of files at $BASE"
+# Rename deeper paths first to avoid breaking traversal
+find "$BASE" -depth -print0 | while IFS= read -r -d '' item; do
+    dir=$(dirname "$item")
+    name=$(basename "$item")
+    lower=$(echo "$name" | tr '[:upper:]' '[:lower:]')
+
+    # Only rename if the name actually changes
+    if [[ "$name" != "$lower" ]]; then
+        if [[ ! -e "$dir/$lower" ]]; then
+            mv "$item" "$dir/$lower"
+            echo "Renamed: $item -> $dir/$lower"
+        else
+            echo "Skipped (target exists): $dir/$lower"
+        fi
+    fi
+done
+
+}
+
 apply_mods() {
     declare_mods
     clean_unused_mods
     install_defined_mods
     check_symlinks
+    tolowercase
 }
+
+create_service(){
+    set -x
+    sudo cp ExampleFiles/arma3server.service /etc/systemd/system/arma3server.service
+    sudo cp ExampleFiles/arma3headless.service /etc/systemd/system/arma3headless.service
+    sudo systemctl daemon-reload
+    sudo systemctl enable arma3server.service
+    sudo systemctl enable arma3headless.service
+    sudo systemctl start arma3server.service
+    sudo systemctl start arma3headless.service
+    set +x
 }
