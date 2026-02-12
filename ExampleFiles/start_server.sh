@@ -45,15 +45,13 @@ for mod_name in "${final_order[@]}"; do
 done
 
 # initialize steamcmd runtime first
-#/home/arma3server/.local/share/Steam/steamcmd/steamcmd.sh +login anonymous +exit
-#/home/arma3server/.steam/steam/steamcmd/steamcmd.sh +login $STEAM_USER $STEAM_PASS +exit
 export STEAM_RUNTIME=1
 export STEAM_COMPAT_CLIENT_INSTALL_PATH=$HOME/.steam/steam
 
 
-export LD_LIBRARY_PATH=/home/arma3server/arma3/linux64:/home/arma3server/.steam/sdk64:/home/arma3server/.local/share/Steam/steamcmd/linux64:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=/home/arma3server/linux64:/home/arma3server/.steam/sdk64:/home/arma3server/.local/share/Steam/steamcmd/linux64:$LD_LIBRARY_PATH
 export PATH=/sbin:/usr/sbin:$PATH
 set -x
-cd /home/arma3server/arma3/
+cd /home/arma3server/
 
 ./arma3server_x64 -name=profile1 -config=server.cfg -cfg=performance.cfg -limitFPS=700 -enableHT -loadMissionToMemory -autoInit  -noLogs -mod="$mod_list"

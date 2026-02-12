@@ -4,10 +4,13 @@ After=network.target
 Requires=arma3server.service
 
 [Service]
+Type=forking
 User=arma3server
 Group=arma3server
-Type=simple
+WorkingDirectory=/home/arma3server/
 ExecStart=/home/arma3server/start_headless.sh
+ExecStop=/home/arma3server/stop_headless.sh
+ExecReload=/home/arma3server/stop_headless.sh && /home/arma3server/start_headless.sh
 Restart=always
 RestartSec=10  
 StartLimitInterval=300

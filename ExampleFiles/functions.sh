@@ -62,17 +62,17 @@ addmod(){
  
  echo "Creating symbolic links"
  final_mod_name=$(echo ${name,,}|tr "-" " " | tr " " "_" | tr '[:upper:]' '[:lower:]')
- target_link="/home/arma3server/arma3/@$final_mod_name"
+ target_link="/home/arma3server/@$final_mod_name"
  
  #set -x
  ln -sf /home/arma3server/mods/steamapps/workshop/content/107410/$mod_id "$target_link"
- cp  /home/arma3server/mods/steamapps/workshop/content/107410/$mod_id/keys/*.bikey /home/arma3server/arma3/keys/
+ cp  /home/arma3server/mods/steamapps/workshop/content/107410/$mod_id/keys/*.bikey /home/arma3server/keys/
  echo "Finished mod $name \n\n"
  
 }
 #Mods not declared in the array will be DELETED!!
 clean_unused_mods() {
-    local GAME_DIR="/home/arma3server/arma3"
+    local GAME_DIR="/home/arma3server/"
     echo "Cleaning unused mods"
 
     for pasta in "$GAME_DIR"/@*; do
@@ -109,7 +109,7 @@ install_defined_mods() {
 }
 
 check_symlinks() {
-    local GAME_DIR="/home/arma3server/arma3"
+    local GAME_DIR="/home/arma3server/"
     local WORKSHOP_DIR="/home/arma3server/mods/steamapps/workshop/content/107410"
     echo "--- Checking symbolic links integrity ---"
 
@@ -171,7 +171,10 @@ apply_mods() {
 create_service(){
     set -x
     sudo cp ExampleFiles/arma3server.service /etc/systemd/system/arma3server.service
-    sudo cp ExampleFiles/arma3headless.service /etc/systemd/system/arma3headless.service
+    sudo cp ExampleFiles/headless/arma3headless.service /etc/systemd/system/arma3headless.service
+    sudo cp ExampleFiles/headless/* /home/arma3server/
+    sudo cp ExampleFiles/start_server.sh /home/arma3server/
+    sudo chmod +x /home/arma3server/*.sh
     sudo systemctl daemon-reload
     sudo systemctl enable arma3server.service
     sudo systemctl enable arma3headless.service
