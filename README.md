@@ -26,7 +26,7 @@ Obs: It will at first try to add steamcmd repositories, install curl and net-too
 
 It will present you with options (see image below), and you can select one.
 
-<img width="1673" height="554" alt="Options Screenshot" src="https://github.com/user-attachments/assets/89e816c6-b547-47c8-8427-87066dee38ac" />
+<img width="924" height="532" alt="Options Screenshot" src="https://github.com/user-attachments/assets/4e8763e6-0729-4d0a-a5bf-d457338e8ae0" />
 
 # Improvements
 
