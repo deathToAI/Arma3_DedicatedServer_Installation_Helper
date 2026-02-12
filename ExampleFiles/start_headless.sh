@@ -27,4 +27,4 @@ echo "Numeric mod list: $mods"
 cd /home/arma3server/arma3/
 echo "Starting headless client"
 set -x
-/home/arma3server/arma3/arma3server_x64 -client -config=server.cfg -connect=127.0.0.1 -password=jogodep0wp0w -nosound -mod="$mods" 
+/home/arma3server/arma3/arma3server_x64 -client -config=server.cfg -connect=127.0.0.1 -password=yourpassword -nosound -mod="$mods" 
